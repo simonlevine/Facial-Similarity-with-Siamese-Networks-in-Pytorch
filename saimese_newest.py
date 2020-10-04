@@ -32,13 +32,17 @@ def show_plot(iteration,loss):
 
 
 
+# class Config():
+#     training_dir = "../data/classification_data/train_data/"
+#     testing_dir = "../data/classification_data/test_data/"
+#     train_batch_size = 64
+#     train_number_epochs = 1 #0
+
 class Config():
-    training_dir = "./data/classification_data/train_data/"
-    testing_dir = "./data/classification_data/test_data/"
+    training_dir = "./data/faces/training/"
+    testing_dir = "./data/faces/testing/"
     train_batch_size = 64
-    train_number_epochs = 1 #0
-
-
+    train_number_epochs = 100
 
 class SiameseNetworkDataset(Dataset):
     
@@ -84,6 +88,13 @@ class SiameseNetworkDataset(Dataset):
     def __len__(self):
         return len(self.imageFolderDataset.imgs)
 
+folder_dataset = dset.ImageFolder(root=Config.training_dir)
+
+siamese_dataset = SiameseNetworkDataset(imageFolderDataset=folder_dataset,
+                                        transform=transforms.Compose([transforms.Resize((100,100)),
+                                                                      transforms.ToTensor()
+                                                                      ])
+                                       ,should_invert=False)
 
 folder_dataset = dset.ImageFolder(root=Config.training_dir)
 
@@ -97,7 +108,7 @@ dataiter = iter(vis_dataloader)
 
 example_batch = next(dataiter)
 concatenated = torch.cat((example_batch[0],example_batch[1]),0)
-imshow(torchvision.utils.make_grid(concatenated))
+# imshow(torchvision.utils.make_grid(concatenated))
 print(example_batch[2].numpy())
 
 
@@ -182,7 +193,6 @@ loss_history = []
 iteration_number= 0
 
 
-
 for epoch in range(0,Config.train_number_epochs):
     for i, data in enumerate(train_dataloader,0):
         img0, img1 , label = data
@@ -197,7 +207,8 @@ for epoch in range(0,Config.train_number_epochs):
             iteration_number +=10
             counter.append(iteration_number)
             loss_history.append(loss_contrastive.item())
-show_plot(counter,loss_history)
+
+# show_plot(counter,loss_history)
 
 
 folder_dataset_test = dset.ImageFolder(root=Config.testing_dir)
@@ -217,4 +228,4 @@ for i in range(10):
     
     output1,output2 = net(Variable(x0).cuda(),Variable(x1).cuda())
     euclidean_distance = F.pairwise_distance(output1, output2)
-    imshow(torchvision.utils.make_grid(concatenated),'Dissimilarity: {:.2f}'.format(euclidean_distance.item()))
+#     imshow(torchvision.utils.make_grid(concatenated),'Dissimilarity: {:.2f}'.format(euclidean_distance.item()))
